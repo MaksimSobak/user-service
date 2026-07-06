@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build -t user-service .
+
+      - name: Run container (basic smoke test)
+        run: |
+          docker run -d -p 8000:8000 --name test user-service
+          sleep 5
+          curl --fail http://localhost:8000/ || exit 1
+          docker logs test
