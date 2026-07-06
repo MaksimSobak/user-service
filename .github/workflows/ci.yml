@@ -21,6 +21,19 @@ jobs:
       - name: Run container (basic smoke test)
         run: |
           docker run -d -p 8000:8000 --name test user-service
-          sleep 5
-          curl --fail http://localhost:8000/ || exit 1
+          
+          echo "Waiting for service to become available..."
+          # Loop up to 10 times, sleeping 1 second between attempts
+          for i in {1..10}; do
+            if curl --fail http://localhost:8000/; then
+              echo "Smoke test passed!"
+              exit 0
+            fi
+            echo "Retrying connection... ($i/10)"
+            sleep 1
+          done
+
+          echo "ERROR: Service failed to respond in time."
+          echo "=== CONTAINER LOGS ==="
           docker logs test
+          exit 1
