@@ -2,38 +2,37 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  pull_request:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build and start services
+        run: docker compose up -d --build
 
-      - name: Build Docker image
-        run: docker build -t user-service .
-
-      - name: Run container (basic smoke test)
+      - name: Wait for API
         run: |
-          docker run -d -p 8000:8000 --name test user-service
-          
-          echo "Waiting for service to become available..."
-          # Loop up to 10 times, sleeping 1 second between attempts
-          for i in {1..10}; do
-            if curl --fail http://localhost:8000/; then
-              echo "Smoke test passed!"
+          echo "Waiting for API..."
+
+          for i in {1..30}; do
+            if curl --fail http://localhost:8000/docs; then
+              echo "API is ready!"
               exit 0
             fi
-            echo "Retrying connection... ($i/10)"
-            sleep 1
+
+            sleep 2
           done
 
-          echo "ERROR: Service failed to respond in time."
-          echo "=== CONTAINER LOGS ==="
-          docker logs test
+          echo "API did not start"
+          docker compose logs
           exit 1
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
