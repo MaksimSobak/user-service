@@ -42,7 +42,7 @@ jobs:
           exit 1
 
       - name: Run tests
-        run: docker compose exec -T user-service pytest
+        run: docker compose exec -T user-service pytest 
 
       - name: Stop containers
         if: always()
