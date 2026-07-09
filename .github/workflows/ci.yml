@@ -42,8 +42,29 @@ jobs:
           exit 1
 
       - name: Run tests
-        run: docker compose exec -T user-service pytest 
+        run: docker compose exec -T user-service pytest
 
       - name: Stop containers
         if: always()
         run: docker compose down -v
+
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+      - name: Build Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker build \
+          -t ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest .
+
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
