@@ -2,23 +2,31 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# системные зависимости (включая netcat для ожидания БД)
-RUN apt-get update && apt-get install -y \
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Системные зависимости
+RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# зависимости python
+# Установка Python зависимостей
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# код приложения
+# Копирование приложения
 COPY . .
 
-# entrypoint script
+# Настройка entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Создание непривилегированного пользователя
+RUN useradd -m appuser && chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8000
 
