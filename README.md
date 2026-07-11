@@ -1,72 +1,82 @@
-# User Service
+## Архитектура проекта
 
-Простой REST API сервис на FastAPI с использованием PostgreSQL и Alembic для управления миграциями базы данных.
+Проект представляет собой REST API, написанное на FastAPI и работающее в Docker-контейнере.
 
-Проект создан для демонстрации работы с Docker, Docker Compose, автоматическими тестами на pytest и CI автоматизацией через GitHub Actions.
+При запуске приложения автоматически:
 
-Стек:
+* ожидается готовность базы данных PostgreSQL;
+* применяются миграции Alembic;
+* запускается FastAPI через Uvicorn;
+* становится доступен endpoint `/health` для проверки состояния приложения.
 
-- Python 3.12
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic
-- Docker
-- Docker Compose
-- Pytest
-- GitHub Actions
+## Используемые технологии
 
-Возможности
+* Python 3.12
+* FastAPI
+* PostgreSQL
+* SQLAlchemy
+* Alembic
+* Pytest
+* Docker
+* Docker Compose
+* GitHub Actions
+* Docker Hub
 
-- Создание REST API на FastAPI
-- Работа с PostgreSQL
-- Управление миграциями базы данных через Alembic
-- Запуск приложения и базы данных через Docker Compose
-- Автоматическая проверка проекта через GitHub Actions
+## Проверка состояния приложения
 
-Как запустить проект:
+В проекте реализован endpoint:
+
+```http
+GET /health
+```
+
+Если приложение работает корректно, он возвращает:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Этот endpoint используется для проверки того, что сервис успешно запустился. Его используют Docker Healthcheck и GitHub Actions, а в будущем его можно будет применять и в Kubernetes.
+
+## CI/CD
+
+Для проекта настроен автоматический CI/CD с помощью GitHub Actions.
+
+После каждого `push` в ветку `main` автоматически выполняются следующие действия:
+
+1. Клонируется репозиторий.
+2. Создаётся временный `.env` файл.
+3. Собираются Docker-образы.
+4. Запускаются контейнеры через Docker Compose.
+5. Проверяется доступность приложения через `/health`.
+6. Запускаются тесты (`pytest`).
+7. Выполняется вход в Docker Hub.
+8. Собирается Docker-образ приложения.
+9. Новый образ публикуется в Docker Hub.
+
+Таким образом, каждое изменение автоматически проходит проверку перед публикацией.
+
+## Запуск проекта
 
 Клонировать репозиторий:
 
 ```bash
-git clone <repository-url>
+git clone <repository_url>
 cd user-service
+```
 
-Запуск приложения:
+Создать файл `.env` на основе `.env.example`.
 
+Запустить проект:
+
+```bash
 docker compose up --build
+```
 
-Перейти в браузере:
+После запуска будут доступны:
 
-http://localhost:8000
-
-Миграция базы данных:
-
-docker compose exec user-service alembic upgrade head
-
-Запуск тестов:
-
-pytest
-
-====================================================================================
-
-В проекте настроен GitHub Actions workflow.
-
-При каждом push в ветку main автоматически выполняются:
-
-сборка Docker-образа;
-запуск сервисов через Docker Compose;
-проверка доступности приложения.
-
-====================================================================================
-
-
-user-service/
-├── app/
-├── tests/
-├── alembic/
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── .github/
-    └── workflows/
+* API — `http://localhost:8000`
+* Swagger UI — `http://localhost:8000/docs`
+* Проверка состояния — `http://localhost:8000/health`
