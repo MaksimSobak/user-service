@@ -28,7 +28,7 @@ jobs:
           echo "Waiting for API..."
 
           for i in {1..30}; do
-            if curl --fail http://localhost:8000/docs; then
+            if curl --fail http://localhost:8000/heatlh; then
               echo "API is ready!"
               exit 0
             fi
