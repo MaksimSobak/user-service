@@ -14,9 +14,9 @@ def startup():
 
 @app.get("/")
 def root():
-    return {"message": "User service is working!"}
+    return {"\nmessage": "User service is working!"}
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"\nstatus": "ok"}
