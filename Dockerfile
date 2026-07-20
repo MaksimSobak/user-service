@@ -5,25 +5,20 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Python зависимостей
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование приложения
 COPY . .
 
-# Настройка entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Создание непривилегированного пользователя
 RUN useradd -m appuser && chown -R appuser:appuser /app
 
 USER appuser
